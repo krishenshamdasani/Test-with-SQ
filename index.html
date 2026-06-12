@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inbox Viewer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Microsoft Authentication Library -->
+  <script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="10" height="10" fill="#F25022"/>
+      <rect x="12" width="10" height="10" fill="#7FBA00"/>
+      <rect y="12" width="10" height="10" fill="#00A4EF"/>
+      <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+    </svg>
+    <h1>Inbox Viewer</h1>
+    <span class="badge">Outlook / Microsoft 365</span>
+  </header>
+
+  <div id="auth-bar">
+    <button id="sign-in-btn">Sign in with Microsoft</button>
+    <button id="sign-out-btn" class="secondary" style="display:none">Sign out</button>
+    <span id="auth-status">Not signed in</span>
+    <span id="user-name"></span>
+  </div>
+
+  <div id="error-banner"></div>
+
+  <main>
+
+    <!-- Left panel: email list -->
+    <div id="email-list-panel">
+      <div id="list-header">
+        <span>Inbox — <span id="list-count">—</span></span>
+        <button id="refresh-btn" title="Refresh">⟳</button>
+      </div>
+
+      <div id="loading">
+        <div class="spinner"></div>
+        Loading emails…
+      </div>
+
+      <div id="empty-state">No emails found.</div>
+
+      <ul id="email-list"></ul>
+    </div>
+
+    <!-- Right panel: email content -->
+    <div id="email-content-panel">
+
+      <div id="content-placeholder">
+        <div class="icon">✉</div>
+        <p>Select an email to read it</p>
+      </div>
+
+      <div id="email-detail">
+        <div id="detail-header">
+          <div id="detail-subject"></div>
+          <div class="detail-meta">
+            <span id="detail-from"></span>
+            <span id="detail-date"></span>
+          </div>
+        </div>
+        <div id="detail-body"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
