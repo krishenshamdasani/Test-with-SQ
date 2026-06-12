@@ -3,8 +3,8 @@
 // Set redirect URI to: http://localhost (type: Single-page application)
 // Grant delegated permission: Mail.Read
 const CONFIG = {
-  clientId: "YOUR_CLIENT_ID_HERE",         // ← paste your Azure app Client ID
-  tenantId: "common",                       // use "common" for personal + work accounts
+  clientId: "040e043c-5d20-406a-89d6-a56e37f82187",         // ← paste your Azure app Client ID
+  tenantId: "68aa6999-1c6a-41cf-b1dc-ffced6ecf2ab",                       // use "common" for personal + work accounts
   redirectUri: window.location.origin + window.location.pathname,
   scopes: ["Mail.Read", "User.Read"],
 };
@@ -23,6 +23,125 @@ const msalConfig = {
 
 let msalInstance;
 let currentEmails = [];
+
+// ── Weather ────────────────────────────────────────────────────────────────
+const FLUENT_EMOJI = "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets";
+
+function wmoEmojiAsset(code) {
+  if (code === 0)  return ["Sun",                           "sun"];
+  if (code <= 2)   return ["Sun behind small cloud",        "sun_behind_small_cloud"];
+  if (code === 3)  return ["Cloud",                         "cloud"];
+  if (code <= 48)  return ["Fog",                           "fog"];
+  if (code <= 57)  return ["Cloud with drizzle",            "cloud_with_drizzle"];
+  if (code <= 67)  return ["Cloud with rain",               "cloud_with_rain"];
+  if (code <= 77)  return ["Snowflake",                     "snowflake"];
+  if (code <= 82)  return ["Cloud with rain",               "cloud_with_rain"];
+  if (code <= 86)  return ["Cloud with snow",               "cloud_with_snow"];
+  return                  ["Cloud with lightning and rain", "cloud_with_lightning_and_rain"];
+}
+
+function setWeatherResult(temp, wmoCode) {
+  const [folder, file] = wmoEmojiAsset(wmoCode);
+  const icon = document.getElementById("weather-icon");
+  icon.src = `${FLUENT_EMOJI}/${encodeURIComponent(folder)}/3D/${file}_3d.png`;
+  icon.alt = folder;
+  icon.style.display = "";
+  document.getElementById("weather-temp").textContent = `${temp}°C`;
+}
+
+function setWeatherUnavailable() {
+  document.getElementById("weather-icon").style.display = "none";
+  document.getElementById("weather-temp").textContent = "Not available";
+}
+
+async function loadWeather() {
+  const source = document.getElementById("weather-source").value;
+  if (!navigator.geolocation) return;
+
+  document.getElementById("weather-widget").style.display = "flex";
+  document.getElementById("weather-icon").style.display = "none";
+  document.getElementById("weather-temp").textContent = "…";
+
+  navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+    const { latitude: lat, longitude: lon } = coords;
+    try {
+      if (source === "meteo") {
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&current=temperature_2m,weather_code&temperature_unit=celsius`
+        );
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setWeatherResult(Math.round(data.current.temperature_2m), data.current.weather_code);
+      } else {
+        // BBC Weather and Yahoo Weather require server-side OAuth / API keys
+        // and cannot be called directly from a browser — show unavailable state
+        setWeatherUnavailable();
+      }
+    } catch { setWeatherUnavailable(); }
+  }, () => { document.getElementById("weather-widget").style.display = "none"; });
+}
+
+document.getElementById("weather-source").addEventListener("change", () => {
+  localStorage.setItem("weatherSource", document.getElementById("weather-source").value);
+  loadWeather();
+});
+
+// ── File drop & Compose ────────────────────────────────────────────────────
+document.addEventListener("dragenter", e => {
+  if (e.dataTransfer.types.includes("Files"))
+    document.getElementById("drop-overlay").classList.add("visible");
+});
+
+document.addEventListener("dragleave", e => {
+  if (!e.relatedTarget || e.relatedTarget === document.documentElement)
+    document.getElementById("drop-overlay").classList.remove("visible");
+});
+
+document.addEventListener("dragover", e => e.preventDefault());
+
+document.addEventListener("drop", e => {
+  e.preventDefault();
+  document.getElementById("drop-overlay").classList.remove("visible");
+  const files = Array.from(e.dataTransfer.files);
+  if (files.length) openCompose(files);
+});
+
+function openCompose(files) {
+  const attachmentsEl = document.getElementById("compose-attachments");
+  attachmentsEl.innerHTML = "";
+  files.forEach(f => {
+    const chip = document.createElement("div");
+    chip.className = "attachment-chip";
+    chip.innerHTML =
+      `<span>📎</span>` +
+      `<span>${escHtml(f.name)}</span>` +
+      `<span class="attach-size">${formatFileSize(f.size)}</span>`;
+    attachmentsEl.appendChild(chip);
+  });
+  document.getElementById("compose-modal").classList.add("visible");
+}
+
+function closeCompose() {
+  document.getElementById("compose-modal").classList.remove("visible");
+  document.getElementById("compose-to").value      = "";
+  document.getElementById("compose-subject").value = "";
+  document.getElementById("compose-message").value = "";
+  document.getElementById("compose-attachments").innerHTML = "";
+}
+
+document.getElementById("compose-close").addEventListener("click", closeCompose);
+document.getElementById("compose-discard").addEventListener("click", closeCompose);
+document.getElementById("compose-send").addEventListener("click", () => {
+  alert("This is a demo — the email has not actually been sent.");
+  closeCompose();
+});
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const signInBtn      = document.getElementById("sign-in-btn");
@@ -64,6 +183,10 @@ async function init() {
   if (accounts.length > 0) {
     onSignedIn(accounts[0]);
   }
+
+  const saved = localStorage.getItem("weatherSource");
+  if (saved) document.getElementById("weather-source").value = saved;
+  loadWeather();
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────

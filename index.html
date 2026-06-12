@@ -26,6 +26,16 @@
     <button id="sign-out-btn" class="secondary" style="display:none">Sign out</button>
     <span id="auth-status">Not signed in</span>
     <span id="user-name"></span>
+
+    <div id="weather-widget">
+      <img id="weather-icon" src="" alt="" width="24" height="24" />
+      <span id="weather-temp"></span>
+      <select id="weather-source" title="Weather data source">
+        <option value="meteo">Open-Meteo</option>
+        <option value="bbc">BBC Weather</option>
+        <option value="yahoo">Yahoo Weather</option>
+      </select>
+    </div>
   </div>
 
   <div id="error-banner"></div>
@@ -70,6 +80,40 @@
 
     </div>
   </main>
+
+  <!-- Drag-and-drop overlay -->
+  <div id="drop-overlay">
+    <div id="drop-message">
+      <div class="drop-icon">📎</div>
+      <p>Drop to attach to a new email</p>
+    </div>
+  </div>
+
+  <!-- Compose / draft modal -->
+  <div id="compose-modal">
+    <div id="compose-panel">
+      <div id="compose-header">
+        <span>New Message</span>
+        <button id="compose-close" title="Close">✕</button>
+      </div>
+      <div id="compose-fields">
+        <div class="compose-row">
+          <label>To</label>
+          <input type="email" id="compose-to" placeholder="recipient@example.com" />
+        </div>
+        <div class="compose-row">
+          <label>Subject</label>
+          <input type="text" id="compose-subject" placeholder="Subject" />
+        </div>
+        <div id="compose-attachments"></div>
+        <textarea id="compose-message" placeholder="Write your message here…"></textarea>
+      </div>
+      <div id="compose-footer">
+        <button id="compose-send">Send (demo)</button>
+        <button id="compose-discard" class="secondary">Discard</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
