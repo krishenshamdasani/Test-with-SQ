@@ -4,7 +4,7 @@
 // Grant delegated permission: Mail.Read
 const CONFIG = {
   clientId: "040e043c-5d20-406a-89d6-a56e37f82187",         // ← paste your Azure app Client ID
-  tenantId: "68aa6999-1c6a-41cf-b1dc-ffced6ecf2ab",                       // use "common" for personal + work accounts
+  tenantId: "organizations",             // any Entra ID / work+school account across all tenants
   redirectUri: window.location.origin + window.location.pathname,
   scopes: ["Mail.Read", "User.Read"],
 };
